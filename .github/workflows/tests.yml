@@ -1,0 +1,115 @@
+
+name: Tests multi-langages avec PostgreSQL
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  pull_request:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DB_HOST: localhost
+  DB_NAME: tp
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_PORT: 5432
+
+jobs:
+
+  test-python:
+    name: Tests Python
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Preparer PostgreSQL
+        run: bash db/setup.sh
+
+      - name: Installer les dependances
+        run: pip install -r python-app/requirements.txt
+
+      - name: Lancer les tests Python
+        working-directory: python-app
+        run: pytest -v test_students.py
+
+  test-javascript:
+    name: Tests JavaScript
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Preparer PostgreSQL
+        run: bash db/setup.sh
+
+      - name: Installer les dependances
+        run: npm --prefix node-app install
+
+      - name: Lancer les tests JavaScript
+        run: npm --prefix node-app test
+
+  test-java:
+    name: Tests Java
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: java-app/pom.xml
+
+      - name: Preparer PostgreSQL
+        run: bash db/setup.sh
+
+      - name: Lancer les tests Java
+        run: mvn -B -f java-app/pom.xml test
+
+  test-php:
+    name: Tests PHP
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer PHP et les extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_pgsql
+          tools: composer
+
+      - name: Preparer PostgreSQL
+        run: bash db/setup.sh
+
+      - name: Installer les dependances
+        run: composer install --working-dir=php-app --no-interaction --prefer-dist
+
+      - name: Lancer les tests PHP
+        run: php php-app/vendor/bin/phpunit php-app/StudentsTest.php

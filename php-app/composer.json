@@ -1,0 +1,22 @@
+
+{
+    "name": "tp/students-app",
+    "description": "Application de gestion des étudiants avec PostgreSQL",
+    "type": "project",
+    "require": {
+        "php": "^8.2",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "classmap": [
+            "Students.php"
+        ]
+    },
+    "scripts": {
+        "test": "phpunit StudentsTest.php"
+    }
+}
