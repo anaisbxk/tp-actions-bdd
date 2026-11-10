@@ -1,0 +1,28 @@
+
+name: CI Python avec PostgreSQL
+
+on: [push, pull_request]
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Preparer la base de donnees
+        run: bash db/setup.sh
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dependances
+        working-directory: python-app
+        run: pip install -r requirements.txt
+
+      - name: Lancer les tests
+        working-directory: python-app
+        run: pytest -v
