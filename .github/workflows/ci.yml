@@ -1,9 +1,10 @@
 
-name: CI Python avec PostgreSQL
+name: CI Multi-langages avec PostgreSQL
 
 on: [push, pull_request]
 
 jobs:
+
   python:
     runs-on: ubuntu-latest
 
@@ -23,6 +24,74 @@ jobs:
         working-directory: python-app
         run: pip install -r requirements.txt
 
-      - name: Lancer les tests
+      - name: Lancer les tests Python
         working-directory: python-app
         run: pytest -v
+
+  node:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Preparer la base de donnees
+        run: bash db/setup.sh
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Installer les dependances
+        working-directory: node-app
+        run: npm ci
+
+      - name: Lancer les tests JavaScript
+        working-directory: node-app
+        run: npm test
+
+  java:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Preparer la base de donnees
+        run: bash db/setup.sh
+
+      - name: Installer Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Compiler et lancer les tests Java
+        working-directory: java-app
+        run: mvn -B package
+
+  php:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Preparer la base de donnees
+        run: bash db/setup.sh
+
+      - name: Installer PHP et ses extensions
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo, pdo_pgsql
+          tools: composer
+
+      - name: Installer les dependances
+        working-directory: php-app
+        run: composer install --no-interaction
+
+      - name: Lancer les tests PHP
+        working-directory: php-app
+        run: vendor/bin/phpunit StudentsTest.php
