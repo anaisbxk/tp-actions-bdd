@@ -8,6 +8,10 @@ jobs:
   python:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
@@ -18,7 +22,7 @@ jobs:
       - name: Installer Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Installer les dependances
         working-directory: python-app
@@ -27,6 +31,14 @@ jobs:
       - name: Lancer les tests Python
         working-directory: python-app
         run: pytest -v
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [python, node, java, php]
+
+    steps:
+      - name: Construire le projet
+        run: echo "Build terminé avec succès !"
 
   node:
     runs-on: ubuntu-latest
@@ -95,3 +107,17 @@ jobs:
       - name: Lancer les tests PHP
         working-directory: php-app
         run: vendor/bin/phpunit StudentsTest.php
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - name: Lancer le déploiement
+        run: echo "Déploiement en cours"
+
+      - name: Vérifier la présence du token
+        env:
+          TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: test -n "$TOKEN" && echo "Token présent"
